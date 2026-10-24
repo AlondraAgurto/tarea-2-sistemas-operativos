@@ -1,0 +1,6 @@
+*.o
+torneo
+*.log
+.vscode/
+.idea/
+
