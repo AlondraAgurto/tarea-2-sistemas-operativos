@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
 #include "juego.h"
 
 typedef struct { // Estructura para pasar argumentos a los hilos de las fichas
@@ -87,6 +89,35 @@ int validar_movimiento(PartidaKomikan *partida, int tipo_ficha, Posicion origen,
     }
 
     return 0; // Movimiento inválido
+}
+
+// Función para ejecutar el movimiento en el tablero de forma segura
+int realizar_movimiento(PartidaKomikan *partida, int tipo_ficha, Posicion origen, Posicion destino) {
+    pthread_mutex_lock(&partida->mutex_tablero); // Bloqueamos el mutex del tablero para proteger el acceso concurrente
+
+    int resultado_validacion = validar_movimiento(partida, tipo_ficha, origen, destino); // Validamos el movimiento antes de ejecutarlo
+
+    if (resultado_validacion == 0) { // Si el movimiento es inválido, desbloqueamos el mutex y retornamos 0
+        pthread_mutex_unlock(&partida->mutex_tablero);
+        return 0; 
+    }
+    // Ejecutamos el movimiento actualizando el tablero
+    partida->tablero[destino.x][destino.y] = tipo_ficha;
+    partida->tablero[origen.x][origen.y] = VACIO;
+    // Si el movimiento fue una captura, eliminamos al PERRO capturado y actualizamos el contador de perros capturados
+    if (resultado_validacion == 2) {
+        int medio_x = (origen.x + destino.x) / 2;
+        int medio_y = (origen.y + destino.y) / 2;
+        partida->tablero[medio_x][medio_y] = VACIO; // Eliminamos al PERRO capturado del tablero
+        partida->perros_capturados++; // Incrementamos el contador de perros capturados por el PUMA
+    }
+
+    if (partida->perros_capturados >= 6) { // Si el PUMA ha capturado 6 PERROS, marcamos el juego como terminado
+        partida->juego_terminado = 1;
+    }
+
+    pthread_mutex_unlock(&partida->mutex_tablero); // Desbloqueamos el mutex del tablero después de realizar el movimiento
+    return resultado_validacion; // Retornamos el resultado de la validación (1 para movimiento normal, 2 para captura)
 }
 
 void* rutina_ficha(void *arg) { // Rutina para los hilos de las fichas (PUMA y PERROS)
