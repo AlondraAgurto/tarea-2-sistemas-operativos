@@ -32,7 +32,7 @@ void inicializar_juego(PartidaKomikan *partida) { // Inicializar el juego Komika
 }
 // Función para imprimir el estado actual del tablero
 void imprimir_tablero(PartidaKomikan *partida) {
-    pthread_mutex_lock(&partida->tablero[0][0]); // Bloqueamos el acceso al tablero para evitar condiciones de carrera
+    pthread_mutex_lock(&partida->mutex_tablero); // <-- CORREGIDO: Usar el mutex correcto
     printf("\n ╰┈➤ESTADO DEL TABLERO KOMIKAN ᶻ 𝗓 𐰁\n");
     for (int i = 0; i < 6; i++) { // Iteramos sobre las filas del tablero
         for (int j = 0; j < 5; j++) { // Iteramos sobre las columnas del tablero
@@ -44,7 +44,7 @@ void imprimir_tablero(PartidaKomikan *partida) {
     }
     // Imprimimos un mensaje final para indicar el final del tablero
     printf("🃜🃚🃖🃁🂭🂺\n");
-    pthread_mutex_unlock(&partida->tablero[0][0]); // Desbloqueamos el acceso al tablero después de imprimirlo
+    pthread_mutex_unlock(&partida->mutex_tablero); // <-- CORREGIDO: Desbloquear el mutex correcto
     // Unlock, shugo chara reference xd
 }
 
