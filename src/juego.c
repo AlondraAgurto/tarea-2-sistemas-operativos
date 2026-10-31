@@ -47,3 +47,38 @@ void imprimir_tablero(PartidaKomikan *partida) {
     pthread_mutex_unlock(&partida->tablero[0][0]); // Desbloqueamos el acceso al tablero después de imprimirlo
     // Unlock, shugo chara reference xd
 }
+
+// Función para validar un movimiento en el juego
+int validar_movimiento(PartidaKomikan *partida, int tipo_ficha, Posicion origen, Posicion destino) { 
+    // 1. Verificar que las posiciones de origen y destino estén dentro de los límites del tablero
+    if (origen.x < 0 || origen.x >= 6 || origen.y < 0 || origen.y >= 5) return 0;
+    if (destino.x < 0 || destino.x >= 6 || destino.y < 0 || destino.y >= 5) return 0;
+
+    // 2. Verificar que la casilla de destino esté vacía
+    if (partida->tablero[destino.x][destino.y] != VACIO) return 0;
+
+    // 3. Verificar que el movimiento sea válido según las reglas del juego
+    int diff_x = abs(destino.x - origen.x);
+    int diff_y = abs(destino.y - origen.y);
+
+    // Movimiento normal (una casilla en cualquier dirección)
+    if (diff_x <= 1 && diff_y <= 1) {
+        return 1;
+    }
+
+    // Movimiento con captura (el PUMA puede saltar sobre un PERRO)
+    if (tipo_ficha == PUMA) {
+        if ((diff_x == 2 && diff_y == 0) || (diff_x == 0 && diff_y == 2) || (diff_x == 2 && diff_y == 2)) { // Movimiento diagonal o recto de dos casillas
+            // Calcular la posición intermedia entre origen y destino
+            int medio_x = (origen.x + destino.x) / 2; 
+            int medio_y = (origen.y + destino.y) / 2; 
+
+            // Verificar si la casilla intermedia contiene un PERRO
+            if (partida->tablero[medio_x][medio_y] == PERRO) {
+                return 2; // Movimiento válido con captura
+            }
+        }
+    }
+
+    return 0; // Movimiento inválido
+}
