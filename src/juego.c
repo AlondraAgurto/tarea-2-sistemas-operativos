@@ -2,6 +2,12 @@
 #include <stdlib.h>
 #include "juego.h"
 
+typedef struct { // Estructura para pasar argumentos a los hilos de las fichas
+    PartidaKomikan *partida; // Puntero a la partida de Komikan
+    int tipo_ficha; // Tipo de ficha (PUMA o PERRO)
+    Posicion pos_actual; // Posición actual de la ficha
+} ArgHiloFicha;
+
 void inicializar_juego(PartidaKomikan *partida) { // Inicializar el juego Komikan
     // Inicializar el mutex del tablero
     pthread_mutex_init(&partida->mutex_tablero, NULL);
@@ -81,4 +87,51 @@ int validar_movimiento(PartidaKomikan *partida, int tipo_ficha, Posicion origen,
     }
 
     return 0; // Movimiento inválido
+}
+
+void* rutina_ficha(void *arg) { // Rutina para los hilos de las fichas (PUMA y PERROS)
+    ArgHiloFicha *datos = (ArgHiloFicha *)arg; // Convertimos el puntero genérico a un puntero de tipo ArgHiloFicha
+    PartidaKomikan *partida = datos->partida; // Obtenemos el puntero a la partida de Komikan
+    
+    // Inicializamos la semilla para la generación de números aleatorios usando el tiempo actual y el ID del hilo
+    unsigned int seed = time(NULL) ^ (unsigned long)pthread_self();
+
+    while (1) { // Bucle infinito para que la ficha siga intentando moverse hasta que el juego termine (como detesto los while 1)
+        // Verificamos si el juego ha terminado antes de intentar movernos
+        pthread_mutex_lock(&partida->mutex_tablero); // Bloqueamos el mutex del tablero para acceder a la bandera de juego terminado
+        if (partida->juego_terminado) { // Si el juego ha terminado, salimos del bucle
+            pthread_mutex_unlock(&partida->mutex_tablero); // Desbloqueamos el mutex antes de salir, sino pos obvio marcará erroreishon lol
+            break; // Salimos del bucle si el juego ha terminado
+        }
+        pthread_mutex_unlock(&partida->mutex_tablero); // Desbloqueamos el mutex del tablero después de verificar la bandera de juego terminado
+
+        // Esperamos un tiempo aleatorio entre 50 y 300 milisegundos antes de intentar movernos (para simular el tiempo de reacción de la ficha)
+        int milisegundos = 50 + (rand_r(&seed) % 251);
+        usleep(milisegundos * 1000); // Convertimos milisegundos a microsegundos para usleep
+
+        // Generamos un movimiento aleatorio para la ficha (PUMA o PERRO)
+        int dir_x = (rand_r(&seed) % 3) - 1; // -1, 0, o 1
+        int dir_y = (rand_r(&seed) % 3) - 1; // -1, 0, o 1
+
+        if (dir_x == 0 && dir_y == 0) continue; // Si no hay movimiento, continuamos al siguiente ciclo del bucle
+
+        Posicion destino = { // Calculamos la posición de destino sumando la dirección al origen
+            .x = datos->pos_actual.x + dir_x,
+            .y = datos->pos_actual.y + dir_y
+        };
+
+        // Intentamos realizar el movimiento de la ficha en la partida de Komikan
+        int resultado = realizar_movimiento(partida, datos->tipo_ficha, datos->pos_actual, destino);
+        
+        if (resultado > 0) { // Si el movimiento fue exitoso (1 para movimiento normal, 2 para captura)
+            // Actualizamos la posición actual de la ficha en los datos del hilo
+            datos->pos_actual = destino;
+            
+            // Imprimimos el estado actual del tablero después de cada movimiento exitoso
+            imprimir_tablero(partida);
+        }
+    }
+
+    free(datos);
+    return NULL;
 }
