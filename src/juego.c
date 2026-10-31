@@ -166,3 +166,8 @@ void* rutina_ficha(void *arg) { // Rutina para los hilos de las fichas (PUMA y P
     free(datos);
     return NULL;
 }
+
+// Función para destruir el juego y liberar recursos
+void destruir_juego(PartidaKomikan *partida) {
+    pthread_mutex_destroy(&partida->mutex_tablero);
+}

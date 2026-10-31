@@ -27,4 +27,7 @@ void inicializar_juego(PartidaKomikan *partida); // Inicializa el estado de la p
 int validar_movimiento(PartidaKomikan *partida, int tipo_ficha, Posicion origen, Posicion destino); // Valida si un movimiento es legal según las reglas del juego
 void imprimir_tablero(PartidaKomikan *partida); // Imprime el estado actual del tablero en la consola
 
-#endif
+
+void destruir_juego(PartidaKomikan *partida);
+
+#endif // JUEGO_H
