@@ -1,5 +1,5 @@
-CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++17 -pthread -Iinclude
+CC = gcc
+CFLAGS = -Wall -Wextra -pthread -Iinclude
 SRC = $(wildcard src/*.c)
 OBJ = $(SRC:.c=.o)
 TARGET = torneo
@@ -7,10 +7,10 @@ TARGET = torneo
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^
 
 %.o: %.c
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -f src/*.o $(TARGET)
