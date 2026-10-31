@@ -177,9 +177,9 @@ static void *ejecutar_juez(void *arg) {
     }
 
     if (servidor_detenido()) {
-        printf("Partida %d interrumpida.\n", pareja->id);
+        printf("⤷ ゛ Partida %d interrumpidaˎˊ˗.\n", pareja->id);
     } else {
-        printf("Partida %d finalizada.\n", pareja->id);
+        printf("⤷ ゛ Partida %d finalizadaˎˊ˗.\n", pareja->id);
     }
 
     liberar_mesa(mesa);
@@ -210,7 +210,7 @@ static void *ejecutar_cliente(void *arg) {
 
     Pareja *pareja = &cliente->parejas[indice_pareja];
 
-    printf("Jugador %d ha llegado al servidor.\n",
+    printf("ᯓ★Jugador %d ha llegado al servidor.\n",
            cliente->id);
 
     if (posicion % 2 == 0) {
@@ -218,7 +218,7 @@ static void *ejecutar_cliente(void *arg) {
         pareja->id = indice_pareja + 1;
         pareja->jugador_puma = cliente->id;
 
-        printf("Jugador %d espera pareja.\n",
+        printf("⋆.*ೃ✧Jugador %d espera pareja.\n",
                cliente->id);
 
         /* Espera pasiva mediante variable de condicion */
@@ -319,9 +319,9 @@ void iniciar_servidor(int n, int m) {
         goto limpiar_memoria;
     }
 
-    printf("\n=== SERVIDOR DE EMPAREJAMIENTO ===\n");
-    printf("Jugadores esperados: %d\n", n);
-    printf("Mesas disponibles: %d\n\n", m);
+    printf("\n✩₊˚.⋆☾⋆⁺₊✧ SERVIDOR DE EMPAREJAMIENTO \n");
+    printf("⊹ ࣪ ﹏𓊝﹏𓂁﹏⊹ ࣪ ˖Jugadores esperados: %d\n", n);
+    printf("𐔌՞. .՞𐦯 Mesas disponibles: %d\n\n", m);
 
     int creados = 0;
 
@@ -369,7 +369,7 @@ void iniciar_servidor(int n, int m) {
     if (servidor_detenido()) {
         printf("\nServidor detenido ordenadamente.\n");
     } else {
-        printf("\nTorneo finalizado correctamente.\n");
+        printf("\n☰♛☰Torneo finalizado correctamente.\n");
     }
 
     sem_destroy(&mesas_disponibles);
@@ -386,5 +386,5 @@ limpiar_memoria:
 
     sigaction(SIGINT, &anterior, NULL);
 
-    printf("Recursos del servidor liberados.\n");
+    printf("⋆⭒˚｡⋆☾Recursos del servidor liberados.\n");
 }
