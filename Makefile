@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -pthread -Iinclude
+CFLAGS = -Wall -Wextra -std=c17 -pthread -Iinclude
 SRC = $(wildcard src/*.c)
 OBJ = $(SRC:.c=.o)
 TARGET = torneo
