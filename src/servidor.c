@@ -1,6 +1,6 @@
 
 #define _POSIX_C_SOURCE 200809L
-
+#include "juego.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdatomic.h>
-
+#include <stdbool.h>
 #include "servidor.h"
 
 #define DURACION_PARTIDA_MS 2000
@@ -17,7 +17,7 @@
 
 /* Control de interrupciones */
 static volatile sig_atomic_t sigint_recibida = 0;
-static atomic_bool error_servidor = ATOMIC_VAR_INIT(0);
+static atomic_bool error_servidor = false;
 
 /* Control de mesas */
 static sem_t mesas_disponibles;
@@ -167,36 +167,38 @@ static void *ejecutar_juez(void *arg) {
            pareja->jugador_perros,
            mesa + 1);
 
-    /* Simulacion temporal: reemplazar por juego real */
-    int transcurrido = 0;
+    /* Ejecutar la partida real de Komikan */
+    int ganador = ejecutar_partida_komikan(servidor_detenido);
 
-    while (transcurrido < DURACION_PARTIDA_MS &&
-           !servidor_detenido()) {
-        dormir_ms(INTERVALO_MS);
-        transcurrido += INTERVALO_MS;
-    }
-
-    if (servidor_detenido()) {
-        printf("⤷ ゛ Partida %d interrumpidaˎˊ˗.\n", pareja->id);
+    if (ganador == PUMA) {
+        printf("Partida %d: Gana el Puma.\n",
+            pareja->id);
+    } else if (ganador == PERRO) {
+        printf("Partida %d: Ganan los Perros.\n",
+            pareja->id);
+    } else if (ganador == 0) {
+        printf("Partida %d: Empate por limite de tiempo.\n",
+            pareja->id);
     } else {
-        printf("⤷ ゛ Partida %d finalizadaˎˊ˗.\n", pareja->id);
+        printf("Partida %d: Cancelada o con error.\n",
+            pareja->id);
     }
-
+    
     liberar_mesa(mesa);
 
     return NULL;
 }
 
-/* Hilo que representa la llegada de un jugador */
-static void *ejecutar_cliente(void *arg) {
-    Cliente *cliente = (Cliente *)arg;
+    /* Hilo que representa la llegada de un jugador */
+    static void *ejecutar_cliente(void *arg) {
+        Cliente *cliente = (Cliente *)arg;
 
-    /* Simular distintos tiempos de llegada */
-    dormir_ms(20 + (cliente->id * 37L) % 180);
+        /* Simular distintos tiempos de llegada */
+        dormir_ms(20 + (cliente->id * 37L) % 180);
 
-    if (servidor_detenido()) {
-        return NULL;
-    }
+        if (servidor_detenido()) {
+            return NULL;
+        }
 
     pthread_mutex_lock(&mutex_parejas);
 
